@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./style.css">
+  <title>CRUD with firestore</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+          <h3>List Students</h3>
+        </header>
+        <div class="table-wrapper">
+          <table class="table-users">
+            <tr>
+              <th>Name</th>
+              <th>Department</th>
+              <th>StudentID</th>
+              <th>Email</th>
+              <th>cgpa</th>
+             
+              <th>Action</th>
+            </tr>
+            
+          </table>
+
+          <button class="btn btn-add">Add Student</button>
+        </div>
+        <!-- Add Modal -->
+        <div class="add-modal modal-wrapper">
+            <div class="modal">
+                <div class="modal-header"><h3>Add New Student</h3></div>
+                <div class="modal-body">
+                    <form class="form" autocomplete="off">
+                        <input type="text" name="firstName" placeholder="Name">
+                        <input type="text" name="department" placeholder="Department">
+                        <input type="number" name="studentid" placeholder="StudentID">
+                        <input type="email" name="email" placeholder="Email">
+                        <input type="cgpa" name="cgpa" placeholder="CGPA">
+                        <button class="btn btn-modal">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="edit-modal modal-wrapper">
+            <div class="modal">
+              <div class="modal-header"><h3>Edit User</h3></div>
+              <div class="modal-body">
+                <form class="form" autocomplete="off">
+                  <input type="text" name="firstName" placeholder="Name">
+                  <input type="text" name="department" placeholder="Department">
+                  <input type="number" name="studentid" placeholder="Studnet ID">
+                  <input type="email" name="email" placeholder="Email">
+                  <input type="cgpa" name="cgpa" placeholder="CGPA">
+                  <button class="btn btn-modal">Submit</button>
+                </form>
+              </div>
+            </div>
+          </div>
+    </div>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+        import { getFirestore, collection, getDocs, addDoc,deleteDoc, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-auth.js'
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyDOKA1mLm-ucZyFdremQhxm3VZ0opGSEN4",
+          authDomain: "cloudapp-4e694.firebaseapp.com",
+          projectId: "cloudapp-4e694",
+          storageBucket: "cloudapp-4e694.appspot.com",
+          messagingSenderId: "616718387365",
+          appId: "1:616718387365:web:8e26d7284586616265254c"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+    
+    
+        const db = getFirestore()
+        
+        const querySnapshot = await getDocs(collection(db, "studentsdetails"));
+
+        let id;
+        const renderUser = doc => {
+ 
+            const tr = `
+            <tr data-id='${doc.id}'>
+                <td>${doc.data().firstName}</td>
+                <td>${doc.data().department}</td>
+                <td>${doc.data().studentid}</td>
+                <td>${doc.data().email}</td>
+                <td>${doc.data().cgpa}</td>
+                <td>
+                <button class="btn btn-edit">Edit</button>
+                <button class="btn btn-delete">Delete</button>
+                </td>
+            </tr>
+            `;
+            tableUsers.insertAdjacentHTML('beforeend', tr);
+            const btnEdit = document.querySelector(`[data-id='${doc.id}'] .btn-edit`);
+            btnEdit.addEventListener('click', () => {
+                editModal.classList.add('modal-show');
+                id=doc.id;
+                editModalForm.firstName.value = doc.data().firstName;
+                editModalForm.department.value = doc.data().department;
+                editModalForm.studentid.value = doc.data().studentid;
+                editModalForm.email.value = doc.data().email;
+                editModalForm.cgpa.value = doc.data().cgpa;
+
+            });
+            
+            
+            
+            const btnDelete = document.querySelector(`[data-id='${doc.id}'] .btn-delete`);
+            btnDelete.addEventListener('click', (e) => {
+                deleteDoc(doc(db,"students",'${doc.id}')).then(() => {
+                console.log('Document succesfully deleted!');      
+                }).catch(err => {
+                    console.log('Error removing document', err);
+                });
+            });  
+    
+        }
+
+        querySnapshot.forEach((doc) => {
+            renderUser(doc);
+        });
+          
+
+        addModalForm.addEventListener('submit', e => {    
+            e.preventDefault();
+
+            const newData = doc(collection(db,"studentsdetails"));
+            setDoc(newData, { 
+                firstName: addModalForm.firstName.value,
+                department: addModalForm.department.value,
+                studentid: addModalForm.studentid.value,
+                email: addModalForm.email.value,
+                cgpa: addModalForm.cgpa.value,
+            })
+            modalWrapper.classList.remove('modal-show');
+               
+        });
+
+
+        editModalForm.addEventListener('submit', e => {
+            e.preventDefault();
+
+            const updateData = doc(db,"studentsdetails",id);
+            setDoc(updateData, { 
+                firstName: editModalForm.firstName.value,
+                department: editModalForm.department.value,
+                studentid: editModalForm.studentid.value,
+                email: editModalForm.email.value,
+                cgpa: editModalForm.cgpa.value,
+            })
+            editModal.classList.remove('modal-show');
+        
+        });
+        
+    </script>
+
+
+    <script src="./script.js" defer></script>
+</body>
+</html>
